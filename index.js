@@ -1,15 +1,20 @@
-var express = require("express");
-var bodyParser = require("body-parser");
-var mongodb = require("mongodb");
-var ObjectID = mongodb.ObjectID;
+const express = require("express");
+const bodyParser = require("body-parser");
+const path = require('path');
+const mongodb = require("mongodb");
+const ObjectID = mongodb.ObjectID;
 
-var PROVIDERS_COLLECTION = "providers";
+const PROVIDERS_COLLECTION = "providers";
 
-var app = express();
+const app = express();
 app.use(bodyParser.json());
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
-var db;
+let db;
+let server;
 
 // Connect to the database before starting the application server.
 mongodb.MongoClient.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/test", function (err, client) {
@@ -23,7 +28,7 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI || "mongodb://localhost:2701
     console.log("Database connection ready");
 
     // Initialize the app.
-    var server = app.listen(process.env.PORT || 8080, function () {
+    server = app.listen(process.env.PORT || 8080, function () {
         var port = server.address().port;
         console.log("App now running on port", port);
     });
@@ -52,7 +57,7 @@ app.get("/api/providers", function(req, res) {
 });
 
 app.post("/api/providers", function(req, res) {
-    var newProvider = req.body;
+    const newProvider = req.body;
     newProvider.createDate = new Date();
 
     if (!req.body.provider_id) {
